@@ -26,7 +26,29 @@ public class GameManager : MonoBehaviour
     public GameObject gameScore;
     public TextMeshProUGUI theWordWas;
     public TextMeshProUGUI finalScore;
+    public TextMeshProUGUI gamesText;
+    public TextMeshProUGUI victoryText;
+    public TextMeshProUGUI winningStreakText;
+    public TextMeshProUGUI bestStreakText;
+    public float games;
+    public float victory;
+    public int winningStreak;
+    public int bestStreak;
+    public bool victoryInLastGame;
+
+    [Header("Help Screens")]
+    public GameObject helpScreen;
     
+    [Header("Stats Screens")]
+    public GameObject statsScreen;
+    public TextMeshProUGUI statsGamesText;
+    public TextMeshProUGUI statsVictoryText;
+    public TextMeshProUGUI statsWinningStreakText;
+    public TextMeshProUGUI statsBestStreakText;
+
+    [Header("Settings Screens")]
+    public GameObject settingsScreen;
+
     [Header("Word Grid Text")]
     public int row;
     public int col;
@@ -92,13 +114,49 @@ public class GameManager : MonoBehaviour
 
         CleanWordGrid();
         ManageCursor(row, col, true);
+        LoadStats();
     }
+
+    // Setup Game -----------------------------
 
     string RandomBaseWord()
     {
         int randomIndex = Random.Range(0, baseWordPool.Length);
         return baseWordPool[randomIndex];
     }
+    
+    public void LoadStats()
+    {
+        // games
+        games = PlayerPrefs.GetFloat("games");
+        gamesText.text = games.ToString();
+        statsGamesText.text = games.ToString();
+
+        // victory
+        victory = PlayerPrefs.GetFloat("victory");
+        if (victory > 0)
+        {
+            victoryText.text = ((victory / games) * 100).ToString("F0") + "%";
+            statsVictoryText.text = ((victory / games) * 100).ToString("F0") + "%";
+        }
+        else
+        {
+            victoryText.text = "0%";
+            statsVictoryText.text = "0%";
+        }
+
+        // winning streak
+        winningStreak = PlayerPrefs.GetInt("winningStreak");
+        winningStreakText.text = winningStreak.ToString();
+        statsWinningStreakText.text = winningStreak.ToString();
+
+        // best streak
+        bestStreak = PlayerPrefs.GetInt("bestStreak");
+        bestStreakText.text = bestStreak.ToString();
+        statsBestStreakText.text = bestStreak.ToString();
+    }
+
+    // Game Interaction -----------------------------
 
     public void KeyboardPressKey(Button pressedButton)
     {
@@ -112,6 +170,24 @@ public class GameManager : MonoBehaviour
             col = 0;
 
         ManageCursor(row, col, true);
+    }
+
+    public void BackspacePressKey(Button pressedButton)
+    {
+        if (letterMatrix[row][col].text != "")
+        {
+            letterMatrix[row][col].text = "";
+        }
+        else
+        {
+            ManageCursor(row, col, false);
+            col--;
+            if (col < 0)
+                col = row0.Length - 1;
+            ManageCursor(row, col, true);
+
+            letterMatrix[row][col].text = "";
+        }
     }
 
     public void ManageCursor(int row, int col, bool active)
@@ -128,6 +204,7 @@ public class GameManager : MonoBehaviour
 
             if (CompareWord(row))
             {
+                UpdateStats(1);
                 GameScore("VITÓRIA");
             }
             else
@@ -139,12 +216,17 @@ public class GameManager : MonoBehaviour
                 attemptNumber++;
 
                 if (attemptNumber == maxAttempts)
+                {
+                    UpdateStats(0);
                     GameScore("DERROTA");
+                }
                 else
                     ManageCursor(row, col, true);
             }
         }
     }
+
+    // Logic -----------------------------
 
     public bool VerifyNumberOfLetters(int row)
     {
@@ -220,11 +302,60 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // After Game -----------------------------
+
     public void GameScore(string result)
     {
         theWordWas.text = baseWord.ToUpper();
         finalScore.text = result;
         gameScore.SetActive(true);
+    }
+
+    public void UpdateStats(int victoryScore)
+    {
+        // games
+        games = PlayerPrefs.GetFloat("games") + 1;
+        PlayerPrefs.SetFloat("games", games);
+        gamesText.text = games.ToString();
+        statsGamesText.text = games.ToString();
+
+        // victory
+        victory = PlayerPrefs.GetFloat("victory") + victoryScore;
+        PlayerPrefs.SetFloat("victory", victory);
+        float percentage = (victory / games) * 100;
+        if (victory > 0)
+        {
+            victoryText.text = percentage.ToString("F0") + "%";
+            statsVictoryText.text = percentage.ToString("F0") + "%";
+        }
+        else
+        {
+            victoryText.text = "0%";
+            statsVictoryText.text = "0%";
+        }
+
+        // winning streak
+        if (victoryScore == 0)
+        {
+            winningStreak = 0;
+            PlayerPrefs.SetInt("winningStreak", 0);
+        }
+        else
+        {
+            winningStreak = PlayerPrefs.GetInt("winningStreak") + 1;
+            PlayerPrefs.SetInt("winningStreak", winningStreak);
+        }
+        winningStreakText.text = winningStreak.ToString();
+        statsWinningStreakText.text = winningStreak.ToString();
+
+        // best streak
+        if (winningStreak > PlayerPrefs.GetInt("bestStreak"))
+        {
+            bestStreak = winningStreak;
+            PlayerPrefs.SetInt("bestStreak", bestStreak);
+            bestStreakText.text = bestStreak.ToString();
+            statsBestStreakText.text = bestStreak.ToString();
+        }
     }
 
     public void PlayAgain()
@@ -256,5 +387,37 @@ public class GameManager : MonoBehaviour
         foreach (Image[] row in bgMatrix)
             foreach (Image letter in row)
                 letter.color = emptyColor;
+    }
+
+    // Screen Manager -----------------------------
+
+    public void OpenHelp()
+    {
+        helpScreen.SetActive(true);
+    }
+
+    public void CloseHelp()
+    {
+        helpScreen.SetActive(false);
+    }
+
+    public void OpenStats()
+    {
+        statsScreen.SetActive(true);
+    }
+
+    public void CloseStats()
+    {
+        statsScreen.SetActive(false);
+    }
+
+    public void OpenSettings()
+    {
+        settingsScreen.SetActive(true);
+    }
+
+    public void CloseSettings()
+    {
+        settingsScreen.SetActive(false);
     }
 }
