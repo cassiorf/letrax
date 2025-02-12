@@ -16,14 +16,8 @@ public class GameManager : MonoBehaviour
     public int attemptNumber;
     public int maxAttempts;
 
-    [Header("Color")]
-    public Color emptyColor;
-    public Color wrongColor;
-    public Color partialColor;
-    public Color rightColor;
-
     [Header("Score")]
-    public GameObject gameScore;
+    public GameObject afterGameScreen;
     public TextMeshProUGUI theWordWas;
     public TextMeshProUGUI finalScore;
     public TextMeshProUGUI gamesText;
@@ -36,18 +30,11 @@ public class GameManager : MonoBehaviour
     public int bestStreak;
     public bool victoryInLastGame;
 
-    [Header("Help Screens")]
-    public GameObject helpScreen;
-    
     [Header("Stats Screens")]
-    public GameObject statsScreen;
     public TextMeshProUGUI statsGamesText;
     public TextMeshProUGUI statsVictoryText;
     public TextMeshProUGUI statsWinningStreakText;
     public TextMeshProUGUI statsBestStreakText;
-
-    [Header("Settings Screens")]
-    public GameObject settingsScreen;
 
     [Header("Word Grid Text")]
     public int row;
@@ -124,7 +111,7 @@ public class GameManager : MonoBehaviour
         int randomIndex = Random.Range(0, baseWordPool.Length);
         return baseWordPool[randomIndex];
     }
-    
+
     public void LoadStats()
     {
         // games
@@ -205,6 +192,7 @@ public class GameManager : MonoBehaviour
             if (CompareWord(row))
             {
                 UpdateStats(1);
+                AudioManager.instance.VictorySFX();
                 GameScore("VITÓRIA");
             }
             else
@@ -218,10 +206,14 @@ public class GameManager : MonoBehaviour
                 if (attemptNumber == maxAttempts)
                 {
                     UpdateStats(0);
+                    AudioManager.instance.DefeatSFX();
                     GameScore("DERROTA");
                 }
                 else
+                {
+                    AudioManager.instance.SendButtonSFX();
                     ManageCursor(row, col, true);
+                }
             }
         }
     }
@@ -234,6 +226,7 @@ public class GameManager : MonoBehaviour
         {
             if (letterMatrix[row][i].text == "")
             {
+                AudioManager.instance.ErrorSFX();
                 return false;
             }
         }
@@ -278,7 +271,7 @@ public class GameManager : MonoBehaviour
         {
             if (attemptWord[i] == baseWord[i])
             {
-                bgMatrix[rowIndex][i].color = rightColor;
+                bgMatrix[rowIndex][i].color = ColorManager.instance.rightColor;
                 exactMatches[i] = true;
                 baseWordLetterCount[attemptWord[i]]--; // Remove do contador
             }
@@ -292,12 +285,12 @@ public class GameManager : MonoBehaviour
             char attemptLetter = attemptWord[i];
             if (baseWordLetterCount.ContainsKey(attemptLetter) && baseWordLetterCount[attemptLetter] > 0)
             {
-                bgMatrix[rowIndex][i].color = partialColor;
+                bgMatrix[rowIndex][i].color = ColorManager.instance.partialColor;
                 baseWordLetterCount[attemptLetter]--; // Remove do contador
             }
             else
             {
-                bgMatrix[rowIndex][i].color = wrongColor;
+                bgMatrix[rowIndex][i].color = ColorManager.instance.wrongColor;
             }
         }
     }
@@ -308,7 +301,7 @@ public class GameManager : MonoBehaviour
     {
         theWordWas.text = baseWord.ToUpper();
         finalScore.text = result;
-        gameScore.SetActive(true);
+        afterGameScreen.SetActive(true);
     }
 
     public void UpdateStats(int victoryScore)
@@ -372,10 +365,13 @@ public class GameManager : MonoBehaviour
         ManageCursor(row, col, true);
 
         // hide score
-        gameScore.SetActive(false);
+        afterGameScreen.SetActive(false);
 
         // generate a new base word
         baseWord = RandomBaseWord();
+
+        // SFX
+        AudioManager.instance.HoverSFX();
     }
 
     public void CleanWordGrid()
@@ -386,38 +382,7 @@ public class GameManager : MonoBehaviour
 
         foreach (Image[] row in bgMatrix)
             foreach (Image letter in row)
-                letter.color = emptyColor;
+                letter.color = ColorManager.instance.emptyColor;
     }
 
-    // Screen Manager -----------------------------
-
-    public void OpenHelp()
-    {
-        helpScreen.SetActive(true);
-    }
-
-    public void CloseHelp()
-    {
-        helpScreen.SetActive(false);
-    }
-
-    public void OpenStats()
-    {
-        statsScreen.SetActive(true);
-    }
-
-    public void CloseStats()
-    {
-        statsScreen.SetActive(false);
-    }
-
-    public void OpenSettings()
-    {
-        settingsScreen.SetActive(true);
-    }
-
-    public void CloseSettings()
-    {
-        settingsScreen.SetActive(false);
-    }
 }
