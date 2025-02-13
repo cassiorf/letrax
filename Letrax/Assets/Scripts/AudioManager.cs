@@ -11,11 +11,13 @@ public class AudioManager : MonoBehaviour
     public bool enableSFX = true;
 
     [Header("Audio Clips")]
+    public AudioClip keyboardSFX;
     public AudioClip hoverSFX;
     public AudioClip errorSFX;
     public AudioClip sendButtonSFX;
     public AudioClip victorySFX;
     public AudioClip defeatSFX;
+    public AudioClip screenChangeSFX;
 
     void Awake()
     {
@@ -27,6 +29,12 @@ public class AudioManager : MonoBehaviour
     {
         if (enableSFX)
             effectSource.PlayOneShot(hoverSFX);
+    }
+
+    public void KeyboardSFX()
+    {
+        if (enableSFX)
+            effectSource.PlayOneShot(keyboardSFX);
     }
 
     public void ErrorSFX()

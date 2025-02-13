@@ -8,7 +8,6 @@ public class ColorManager : MonoBehaviour
     public static ColorManager instance;
 
     [Header("Color")]
-    public Color backgroundColor;
     public Color emptyColor;
     public Color wrongColor;
     public Color partialColor;
