@@ -1,4 +1,4 @@
-using System.Collections;
+    using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -64,6 +64,8 @@ public class AudioManager : MonoBehaviour
     public void ToggleSFX(Image toggelButton)
     {
         enableSFX = !enableSFX;
+        PlayerPrefs.SetInt("enableSFX", enableSFX ? 2 : 1);
+
         AudioManager.instance.HoverSFX();
         toggelButton.color = enableSFX ? ColorManager.instance.rightColor : ColorManager.instance.emptyColor;
     }

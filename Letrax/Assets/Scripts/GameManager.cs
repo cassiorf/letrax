@@ -14,8 +14,13 @@ public class GameManager : MonoBehaviour
     public static GameManager instance;
 
     [Header("Word Database")]
-    public TextAsset JSONFile;
+    public TextAsset AllWordsJSONFile;
+    public TextAsset SelectionWordsJSONFile;
     [System.NonSerialized] private List<string> baseWordPool = new List<string>();
+    [System.NonSerialized] private List<string> selectionBaseWordPool = new List<string>();
+
+    [Header("Settings")]
+    public int colorPalette;
 
     [Header("Game Stats")]
     public string baseWord;
@@ -55,6 +60,7 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI[] row4;
     public TextMeshProUGUI[] row5;
     public List<TextMeshProUGUI[]> letterMatrix = new List<TextMeshProUGUI[]>();
+    public Animator[] rowAnimator;
 
     [Header("Letter BG")]
     public Image[] bgRow0;
@@ -73,6 +79,7 @@ public class GameManager : MonoBehaviour
     public Image[] cursorRow4;
     public Image[] cursorRow5;
     public List<Image[]> cursorMatrix = new List<Image[]>();
+    public Animator[] rowCursorAnimator;
 
     // Singleton ----------------------------------------------------------
 
@@ -90,19 +97,39 @@ public class GameManager : MonoBehaviour
         public List<string> words;
     }
 
+    // load pool with all words
     void LoadWordList()
     {
-        WordListData loadedData = JsonUtility.FromJson<WordListData>(JSONFile.text);
+        baseWordPool = LoadWordsFromJSON(AllWordsJSONFile);
+        Debug.Log($"JSON principal carregado com {baseWordPool.Count} palavras.");
+    }
+
+    // load pool with selection words
+    void LoadSelectionWordList()
+    {
+        selectionBaseWordPool = LoadWordsFromJSON(SelectionWordsJSONFile);
+        Debug.Log($"JSON secundário carregado com {selectionBaseWordPool.Count} palavras.");
+    }
+
+    // Função genérica para carregar um JSON em uma lista de palavras
+    List<string> LoadWordsFromJSON(TextAsset jsonFile)
+    {
+        if (jsonFile == null)
+        {
+            Debug.LogError("Erro: JSONFile não atribuído.");
+            return new List<string>();
+        }
+
+        WordListData loadedData = JsonUtility.FromJson<WordListData>(jsonFile.text);
 
         if (loadedData != null && loadedData.words != null)
         {
-            baseWordPool = new List<string>(loadedData.words);
-            Debug.Log($"JSON carregado com {baseWordPool.Count} palavras.");
+            return new List<string>(loadedData.words);
         }
         else
         {
             Debug.LogError("Erro: JSON carregado, mas a lista 'words' está nula.");
-            baseWordPool = new List<string>();
+            return new List<string>();
         }
     }
 
@@ -135,12 +162,23 @@ public class GameManager : MonoBehaviour
         bgMatrix.Add(bgRow4);
         bgMatrix.Add(bgRow5);
 
+        // load JSON with all words
         LoadWordList();
+
+        // load JSON with most common words to be selected as base word
+        LoadSelectionWordList();
+
+        // randomize base word
         baseWord = RandomBaseWord();
-        
+
+        // load progress from previous section
         LoadGridPersistence();
         ManageCursor(row, col, true);
-        
+
+        // load settings screen
+        LoadSettings();
+
+        // load stats screen
         LoadStats();
     }
 
@@ -148,44 +186,13 @@ public class GameManager : MonoBehaviour
     {
         if (PlayerPrefs.GetString("row0") == "")
         {
-            int randomIndex = UnityEngine.Random.Range(0, baseWordPool.Count);
-            PlayerPrefs.SetString("baseWord", baseWordPool[randomIndex]);
-            
-            return baseWordPool[randomIndex];
+            int randomIndex = UnityEngine.Random.Range(0, selectionBaseWordPool.Count);
+            PlayerPrefs.SetString("baseWord", selectionBaseWordPool[randomIndex]);
+            PlayerPrefs.Save();
+            return selectionBaseWordPool[randomIndex];
         }
         else
             return PlayerPrefs.GetString("baseWord");
-    }
-
-    public void LoadStats()
-    {
-        // games
-        games = PlayerPrefs.GetFloat("games");
-        gamesText.text = games.ToString();
-        statsGamesText.text = games.ToString();
-
-        // victory
-        victory = PlayerPrefs.GetFloat("victory");
-        if (victory > 0)
-        {
-            victoryText.text = ((victory / games) * 100).ToString("F0") + "%";
-            statsVictoryText.text = ((victory / games) * 100).ToString("F0") + "%";
-        }
-        else
-        {
-            victoryText.text = "0%";
-            statsVictoryText.text = "0%";
-        }
-
-        // winning streak
-        winningStreak = PlayerPrefs.GetInt("winningStreak");
-        winningStreakText.text = winningStreak.ToString();
-        statsWinningStreakText.text = winningStreak.ToString();
-
-        // best streak
-        bestStreak = PlayerPrefs.GetInt("bestStreak");
-        bestStreakText.text = bestStreak.ToString();
-        statsBestStreakText.text = bestStreak.ToString();
     }
 
     public void LoadGridPersistence()
@@ -253,6 +260,44 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void LoadSettings()
+    {
+        AudioManager.instance.enableSFX = (PlayerPrefs.GetInt("enableSFX", 2) != 1);
+
+        ColorManager.instance.UpdateSettingsColorButton(PlayerPrefs.GetInt("colorPalette"), false);
+    }
+
+    public void LoadStats()
+    {
+        // games
+        games = PlayerPrefs.GetFloat("games");
+        gamesText.text = games.ToString();
+        statsGamesText.text = games.ToString();
+
+        // victory
+        victory = PlayerPrefs.GetFloat("victory");
+        if (victory > 0)
+        {
+            victoryText.text = ((victory / games) * 100).ToString("F0") + "%";
+            statsVictoryText.text = ((victory / games) * 100).ToString("F0") + "%";
+        }
+        else
+        {
+            victoryText.text = "0%";
+            statsVictoryText.text = "0%";
+        }
+
+        // winning streak
+        winningStreak = PlayerPrefs.GetInt("winningStreak");
+        winningStreakText.text = winningStreak.ToString();
+        statsWinningStreakText.text = winningStreak.ToString();
+
+        // best streak
+        bestStreak = PlayerPrefs.GetInt("bestStreak");
+        bestStreakText.text = bestStreak.ToString();
+        statsBestStreakText.text = bestStreak.ToString();
+    }
+
     // Game Interaction ----------------------------------------------------------
 
     public void KeyboardPressKey(Button pressedButton)
@@ -317,8 +362,9 @@ public class GameManager : MonoBehaviour
             if (CompareWord(row))
             {
                 UpdateStats(1);
-                AudioManager.instance.VictorySFX();
                 ResetGridPersistence();
+                AudioManager.instance.VictorySFX();
+                ColorManager.instance.UpdateAfterGameScreenColor(true);
                 GameScore("VITÓRIA");
             }
             else
@@ -329,12 +375,14 @@ public class GameManager : MonoBehaviour
                 col = 0;
                 attemptNumber++;
                 PlayerPrefs.SetInt("attemptNumber", attemptNumber);
+                PlayerPrefs.Save();
 
                 if (attemptNumber == maxAttempts)
                 {
                     UpdateStats(0);
-                    AudioManager.instance.DefeatSFX();
                     ResetGridPersistence();
+                    AudioManager.instance.DefeatSFX();
+                    ColorManager.instance.UpdateAfterGameScreenColor(false);
                     GameScore("DERROTA");
                 }
                 else
@@ -388,6 +436,7 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < 6; i++)
             PlayerPrefs.SetString($"row{i}", "");
         PlayerPrefs.SetInt("attemptNumber", 0);
+        PlayerPrefs.Save();
     }
 
     // Logic ----------------------------------------------------------
@@ -400,8 +449,9 @@ public class GameManager : MonoBehaviour
         // Verificar se tem menos de 5 letras
         if (attemptWord.Length < 5)
         {
-            AudioManager.instance.ErrorSFX();
             alertText.text = "A PALAVRA ESTÁ INCOMPLETA";
+            VFXError(rowIndex);
+            AudioManager.instance.ErrorSFX();
             return false;
         }
 
@@ -411,8 +461,9 @@ public class GameManager : MonoBehaviour
         // Verificar se a palavra está na lista baseWordPool
         if (!baseWordPool.Any(word => RemoveDiacritics(word) == normalizedAttemptWord))
         {
-            AudioManager.instance.ErrorSFX();
             alertText.text = "ESSA PALAVRA NÃO É ACEITA";
+            VFXError(rowIndex);
+            AudioManager.instance.ErrorSFX();
             return false;
         }
 
@@ -589,4 +640,11 @@ public class GameManager : MonoBehaviour
                 letter.color = ColorManager.instance.emptyColor;
     }
 
+    // VFX ----------------------------------------------------------
+
+    public void VFXError(int rowIndex)
+    {
+        rowAnimator[rowIndex].SetTrigger("Error");
+        rowCursorAnimator[rowIndex].SetTrigger("Error");
+    }
 }

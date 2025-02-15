@@ -23,6 +23,12 @@ public class ColorManager : MonoBehaviour
     public Color tritanopiaPartialColor;
     public Color tritanopiaRightColor;
 
+    [Header("After Game Screen Color")]
+    public Color screenVictoryColor;
+    public Color buttonVictoryColor;
+    public Color screenDefeatColor;
+    public Color buttonDefeatColor;
+
     [Header("Color Button Selection")]
     public Image[] colorButtonSelection;
 
@@ -37,6 +43,10 @@ public class ColorManager : MonoBehaviour
     public Image partialLetterOnExemple;
     public Image rightLetterOnExemple;
 
+    [Header("After Game Objects")]
+    public Image screenBG;
+    public Image playAgainButton;
+
 
     private void Awake()
     {
@@ -46,7 +56,13 @@ public class ColorManager : MonoBehaviour
 
     public void UpdateSettingsColorButton(int index)
     {
-        AudioManager.instance.HoverSFX();
+        UpdateSettingsColorButton(index, true);
+    }
+
+    public void UpdateSettingsColorButton(int index, bool playSFX)
+    {
+        if (playSFX)
+            AudioManager.instance.HoverSFX();
 
         switch (index)
         {
@@ -71,6 +87,9 @@ public class ColorManager : MonoBehaviour
                 rightColorModel.color = basicRightColor;
                 break;
         }
+
+        GameManager.instance.colorPalette = index;
+        PlayerPrefs.SetInt("colorPalette", index);
 
         for (int i = 0; i < colorButtonSelection.Length; i++)
             colorButtonSelection[i].color = (i == index) ? rightColorModel.color : ColorManager.instance.emptyColor;
@@ -105,4 +124,11 @@ public class ColorManager : MonoBehaviour
         partialColor = partialColorModel.color;
         rightColor = rightColorModel.color;
     }
+
+    public void UpdateAfterGameScreenColor(bool victory)
+    {
+        screenBG.color = victory ? screenVictoryColor : screenDefeatColor;
+        playAgainButton.color = victory ? buttonVictoryColor : buttonDefeatColor;
+    }
+
 }
