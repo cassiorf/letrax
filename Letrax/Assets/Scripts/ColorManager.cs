@@ -2,16 +2,23 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine;
+using TMPro;
 
 public class ColorManager : MonoBehaviour
 {
     public static ColorManager instance;
 
-    [Header("Color")]
+    [Header("Color Base")]
     public Color emptyColor;
     public Color wrongColor;
     public Color partialColor;
     public Color rightColor;
+
+    [Header("Keyboard Color")]
+    public Color keyBGBasicColor;
+    public Color keyTextBasicColor;
+    public Color keyBGWrongColor;
+    public Color keyTextWrongColor;
 
     [Header("Color Selection")]
     public Color basicPartialColor;
@@ -118,6 +125,15 @@ public class ColorManager : MonoBehaviour
                 else if (img.color == rightColor)
                     img.color = rightColorModel.color;
             }
+        }
+
+        // update keyboard color
+        foreach (TextMeshProUGUI text in GameManager.instance.keyboardKeyText)
+        {
+            if (text.GetComponentInParent<Image>().color == partialColor)
+                text.GetComponentInParent<Image>().color = partialColorModel.color;
+            else if (text.GetComponentInParent<Image>().color == rightColor)
+                text.GetComponentInParent<Image>().color = rightColorModel.color;
         }
 
         // update color database

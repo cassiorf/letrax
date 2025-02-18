@@ -8,6 +8,7 @@ using System.Linq;
 using System.Globalization;
 using System.IO;
 using System;
+using System.Drawing;
 
 public class GameManager : MonoBehaviour
 {
@@ -80,6 +81,9 @@ public class GameManager : MonoBehaviour
     public Image[] cursorRow5;
     public List<Image[]> cursorMatrix = new List<Image[]>();
     public Animator[] rowCursorAnimator;
+
+    [Header("Keyboard")]
+    public TextMeshProUGUI[] keyboardKeyText;
 
     // Singleton ----------------------------------------------------------
 
@@ -175,6 +179,9 @@ public class GameManager : MonoBehaviour
         LoadGridPersistence();
         ManageCursor(row, col, true);
 
+        // load keyboard colors
+        //UpdateKeyboardColors();
+
         // load settings screen
         LoadSettings();
 
@@ -194,79 +201,7 @@ public class GameManager : MonoBehaviour
         else
             return PlayerPrefs.GetString("baseWord");
     }
-
-    public void LoadGridPersistence()
-    {
-        // get number of attempts
-        attemptNumber = PlayerPrefs.GetInt("attemptNumber");
-
-        // Obtém a baseWord salva
-        string baseWord = PlayerPrefs.GetString("baseWord", "");
-        if (string.IsNullOrEmpty(baseWord)) return; // Se não houver palavra salva, sai da função
-
-        row = 0; // Linha onde o cursor será ativado
-
-        for (; row < 6; row++)
-        {
-            string savedWord = PlayerPrefs.GetString("row" + row, "");
-            if (string.IsNullOrEmpty(savedWord))
-            {
-                break; // Define a próxima linha vazia para ativar o cursor
-            }
-
-            for (int col = 0; col < savedWord.Length && col < letterMatrix[row].Length; col++)
-            {
-                char letter = savedWord[col];
-                letterMatrix[row][col].text = letter.ToString().ToUpper(); // Escreve a letra
-            }
-
-            // Verifica as cores das letras comparando com baseWord
-            Dictionary<char, int> baseWordLetterCount = new Dictionary<char, int>();
-            foreach (char c in baseWord) // Conta ocorrências das letras na baseWord
-            {
-                if (baseWordLetterCount.ContainsKey(c)) baseWordLetterCount[c]++;
-                else baseWordLetterCount[c] = 1;
-            }
-
-            for (int col = 0; col < savedWord.Length && col < letterMatrix[row].Length; col++)
-            {
-                char letter = savedWord[col];
-                Image bgImage = bgMatrix[row][col];
-
-                if (baseWord[col] == letter) // Letra correta na posição correta
-                {
-                    bgImage.color = ColorManager.instance.rightColor;
-                    baseWordLetterCount[letter]--; // Marca como usada
-                }
-            }
-
-            for (int col = 0; col < savedWord.Length && col < letterMatrix[row].Length; col++)
-            {
-                char letter = savedWord[col];
-                Image bgImage = bgMatrix[row][col];
-
-                if (baseWord[col] == letter) continue; // Já marcada como correta
-
-                if (baseWord.Contains(letter) && baseWordLetterCount.ContainsKey(letter) && baseWordLetterCount[letter] > 0) // Letra certa na posição errada
-                {
-                    bgImage.color = ColorManager.instance.partialColor;
-                    baseWordLetterCount[letter]--; // Marca como usada
-                }
-                else // Letra errada
-                {
-                    bgImage.color = ColorManager.instance.wrongColor;
-                }
-            }
-        }
-    }
-
-    public void LoadSettings()
-    {
-        AudioManager.instance.enableSFX = (PlayerPrefs.GetInt("enableSFX", 2) != 1);
-
-        ColorManager.instance.UpdateSettingsColorButton(PlayerPrefs.GetInt("colorPalette"), false);
-    }
-
+    
     public void LoadStats()
     {
         // games
@@ -297,6 +232,87 @@ public class GameManager : MonoBehaviour
         bestStreakText.text = bestStreak.ToString();
         statsBestStreakText.text = bestStreak.ToString();
     }
+
+    public void LoadSettings()
+    {
+        AudioManager.instance.enableSFX = (PlayerPrefs.GetInt("enableSFX", 2) != 1);
+
+        ColorManager.instance.UpdateSettingsColorButton(PlayerPrefs.GetInt("colorPalette"), false);
+    }
+
+    public void LoadGridPersistence()
+    {
+        // get number of attempts
+        attemptNumber = PlayerPrefs.GetInt("attemptNumber");
+
+        // Obtém a baseWord salva e remove os acentos para a lógica de comparação
+        string baseWordRaw = PlayerPrefs.GetString("baseWord", "");
+        if (string.IsNullOrEmpty(baseWordRaw)) return; // Se não houver palavra salva, sai da função
+
+        string baseWord = RemoveDiacritics(baseWordRaw); // Versão sem acentos para a lógica
+
+        row = 0; // Linha onde o cursor será ativado
+
+        for (; row < 6; row++)
+        {
+            string savedWord = PlayerPrefs.GetString("row" + row, "");
+            if (string.IsNullOrEmpty(savedWord))
+            {
+                break; // Define a próxima linha vazia para ativar o cursor
+            }
+
+            string normalizedSavedWord = RemoveDiacritics(savedWord); // Remove acentos da palavra salva
+
+            for (int col = 0; col < savedWord.Length && col < letterMatrix[row].Length; col++)
+            {
+                letterMatrix[row][col].text = savedWord[col].ToString().ToUpper(); // Mantém acento na exibição
+            }
+
+            // Criar dicionário com contagem de letras da baseWord sem acentos
+            Dictionary<char, int> baseWordLetterCount = new Dictionary<char, int>();
+            foreach (char c in baseWord)
+            {
+                if (baseWordLetterCount.ContainsKey(c)) baseWordLetterCount[c]++;
+                else baseWordLetterCount[c] = 1;
+            }
+
+            // Verifica posição exata (corretos)
+            for (int col = 0; col < normalizedSavedWord.Length && col < letterMatrix[row].Length; col++)
+            {
+                char letter = normalizedSavedWord[col];
+                Image bgImage = bgMatrix[row][col];
+
+                if (baseWord[col] == letter) // Letra correta na posição correta
+                {
+                    PaintKeyboarLetter(letterMatrix[row][col].text, 2);
+                    bgImage.color = ColorManager.instance.rightColor;
+                    baseWordLetterCount[letter]--; // Marca como usada
+                }
+            }
+
+            // Verifica se existe em outra posição (parcial) ou se está errada
+            for (int col = 0; col < normalizedSavedWord.Length && col < letterMatrix[row].Length; col++)
+            {
+                char letter = normalizedSavedWord[col];
+                Image bgImage = bgMatrix[row][col];
+
+                if (baseWord[col] == letter) continue; // Já marcada como correta
+
+                if (baseWord.Contains(letter) && baseWordLetterCount.ContainsKey(letter) && baseWordLetterCount[letter] > 0)
+                {
+                    PaintKeyboarLetter(letterMatrix[row][col].text, 1);
+                    bgImage.color = ColorManager.instance.partialColor;
+                    baseWordLetterCount[letter]--; // Marca como usada
+                }
+                else
+                {
+                    PaintKeyboarLetter(letterMatrix[row][col].text, 0);
+                    bgImage.color = ColorManager.instance.wrongColor;
+                }
+            }
+        }
+    }
+
 
     // Game Interaction ----------------------------------------------------------
 
@@ -439,7 +455,7 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-    // Logic ----------------------------------------------------------
+    // Game Logic and Mechanics ----------------------------------------------------------
 
     public bool VerifyNumberOfLettersAndWordDatabase(int rowIndex)
     {
@@ -524,6 +540,7 @@ public class GameManager : MonoBehaviour
             if (attemptWord[i] == normalizedBaseWord[i])
             {
                 bgMatrix[rowIndex][i].color = ColorManager.instance.rightColor;
+                PaintKeyboarLetter(letterMatrix[rowIndex][i].text, 2);
                 exactMatches[i] = true;
                 baseWordLetterCount[attemptWord[i]]--; // Remove do contador
             }
@@ -538,14 +555,56 @@ public class GameManager : MonoBehaviour
             if (baseWordLetterCount.ContainsKey(attemptLetter) && baseWordLetterCount[attemptLetter] > 0)
             {
                 bgMatrix[rowIndex][i].color = ColorManager.instance.partialColor;
+                PaintKeyboarLetter(letterMatrix[rowIndex][i].text, 1);
                 baseWordLetterCount[attemptLetter]--; // Remove do contador
             }
             else
             {
                 bgMatrix[rowIndex][i].color = ColorManager.instance.wrongColor;
+                PaintKeyboarLetter(letterMatrix[rowIndex][i].text, 0);
             }
         }
     }
+
+    public void PaintKeyboarLetter(string letter, int result)
+    {
+        // Garante que a letra seja minúscula para evitar problemas de comparação
+        letter = RemoveDiacritics(letter).ToLower();
+
+        // Percorre todas as teclas do teclado
+        foreach (TextMeshProUGUI keyText in keyboardKeyText)
+        {
+            if (keyText.text.ToLower() == letter) // Achou a tecla correspondente
+            {
+                Image keyImage = keyText.transform.parent.GetComponent<Image>(); // Pega o Image do objeto pai
+
+                switch (result)
+                {
+                    case 0: // Letra errada > só atualiza se tecla não foi pintada ainda
+                        if (keyImage.color == ColorManager.instance.keyBGBasicColor)
+                        {
+                            keyText.color = ColorManager.instance.keyTextWrongColor;
+                            keyImage.color = ColorManager.instance.keyBGWrongColor;
+                        }
+                        break;
+                    case 1: // Letra parcial > só não atualiza se for letra certa 
+                        if (keyImage.color != ColorManager.instance.rightColor)
+                        {
+                            keyText.color = ColorManager.instance.keyTextBasicColor;
+                            keyImage.color = ColorManager.instance.partialColor;
+                        }
+                        break;
+                    case 2: // Letra correta > sempre atualiza
+                        keyText.color = ColorManager.instance.keyTextBasicColor;
+                        keyImage.color = ColorManager.instance.rightColor;
+                        break;
+                }
+
+                break; // Sai do loop após encontrar a tecla certa
+            }
+        }
+    }
+
 
     // After Game ----------------------------------------------------------
 
@@ -610,6 +669,9 @@ public class GameManager : MonoBehaviour
         // clear word grid
         CleanWordGrid();
 
+        // reset keyboad color
+        ClearKeyboardColor();
+
         // reset variables
         attemptWord = "";
         attemptNumber = 0;
@@ -638,6 +700,15 @@ public class GameManager : MonoBehaviour
         foreach (Image[] row in bgMatrix)
             foreach (Image letter in row)
                 letter.color = ColorManager.instance.emptyColor;
+    }
+
+    public void ClearKeyboardColor()
+    {
+        foreach (TextMeshProUGUI keyText in keyboardKeyText)
+        {
+            keyText.color = ColorManager.instance.keyTextBasicColor;
+            keyText.GetComponentInParent<Image>().color = ColorManager.instance.keyBGBasicColor;
+        }
     }
 
     // VFX ----------------------------------------------------------

@@ -557,6 +557,10 @@ MonoBehaviour:
   wrongColor: {r: 0.16470589, g: 0.18039216, b: 0.19215687, a: 1}
   partialColor: {r: 0.827451, g: 0.6784314, b: 0.4117647, a: 1}
   rightColor: {r: 0.22745098, g: 0.6392157, b: 0.5803922, a: 1}
+  keyBGBasicColor: {r: 0.2627451, g: 0.28627452, b: 0.29803923, a: 1}
+  keyTextBasicColor: {r: 1, g: 1, b: 1, a: 1}
+  keyBGWrongColor: {r: 0.2627451, g: 0.28627452, b: 0.29803923, a: 0.39215687}
+  keyTextWrongColor: {r: 1, g: 1, b: 1, a: 0.39215687}
   basicPartialColor: {r: 0.82745105, g: 0.6784314, b: 0.41176474, a: 1}
   basicRightColor: {r: 0.227451, g: 0.6392157, b: 0.5803922, a: 1}
   deuteranopiaPartialColor: {r: 0.9716981, g: 0.74330235, b: 0.33459416, a: 1}
@@ -564,7 +568,7 @@ MonoBehaviour:
   protanopiaPartialColor: {r: 0.8018868, g: 0.45468324, b: 0.27612138, a: 1}
   protanopiaRightColor: {r: 0.17621931, g: 0.363856, b: 0.6792453, a: 1}
   tritanopiaPartialColor: {r: 0.82745105, g: 0.5529412, b: 0.41176474, a: 1}
-  tritanopiaRightColor: {r: 0.51080704, g: 0.32079923, b: 0.764151, a: 1}
+  tritanopiaRightColor: {r: 0.47495615, g: 0.2474635, b: 0.7830189, a: 1}
   screenVictoryColor: {r: 0.10588236, g: 0.23529413, b: 0.16862746, a: 1}
   buttonVictoryColor: {r: 0.20392159, g: 0.45098042, b: 0.34901962, a: 1}
   screenDefeatColor: {r: 0.23529413, g: 0.10588236, b: 0.121568635, a: 1}
@@ -3839,7 +3843,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: LETRAX
+  m_text: LETRA<color=#43494c><b>X</b></color>
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3872,7 +3876,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 1
+  m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -5282,14 +5286,15 @@ GameObject:
   m_Component:
   - component: {fileID: 350432669}
   - component: {fileID: 350432671}
-  - component: {fileID: 350432670}
+  - component: {fileID: 350432673}
+  - component: {fileID: 350432672}
   m_Layer: 5
   m_Name: Main Menu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &350432669
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5312,36 +5317,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &350432670
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 350432668}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.36078432, g: 0.4, b: 0.43137255, a: 1}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
 --- !u!222 &350432671
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5350,6 +5325,48 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 350432668}
   m_CullTransparentMesh: 1
+--- !u!114 &350432672
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 350432668}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f23df44441de11e4eb45d9bf3498c913, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  img: {fileID: 350432673}
+  xSpeed: 0
+  ySpeed: 0
+--- !u!114 &350432673
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 350432668}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Texture: {fileID: 2800000, guid: 99ca6e8e9516c524e91f4d9c1b7d5d9e, type: 3}
+  m_UVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
 --- !u!1 &357513154
 GameObject:
   m_ObjectHideFlags: 0
@@ -7928,14 +7945,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.36078432, g: 0.4, b: 0.43137255, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: b1310969f836eea4c9c64176bf9497a4, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -21502,6 +21519,33 @@ MonoBehaviour:
   - {fileID: 1124736854}
   - {fileID: 1385706498}
   - {fileID: 810607376}
+  keyboardKeyText:
+  - {fileID: 452899083}
+  - {fileID: 1275280431}
+  - {fileID: 756404099}
+  - {fileID: 1170898402}
+  - {fileID: 1908021941}
+  - {fileID: 1221899022}
+  - {fileID: 2086105260}
+  - {fileID: 435361439}
+  - {fileID: 1478974429}
+  - {fileID: 1699363799}
+  - {fileID: 1686285367}
+  - {fileID: 1854163104}
+  - {fileID: 236489135}
+  - {fileID: 500887679}
+  - {fileID: 952690487}
+  - {fileID: 1166954616}
+  - {fileID: 2111019421}
+  - {fileID: 1782561221}
+  - {fileID: 1871944743}
+  - {fileID: 1479836056}
+  - {fileID: 2108334744}
+  - {fileID: 564088511}
+  - {fileID: 562798404}
+  - {fileID: 1528480349}
+  - {fileID: 882703823}
+  - {fileID: 1728901013}
 --- !u!1 &1371328764
 GameObject:
   m_ObjectHideFlags: 0
@@ -25879,7 +25923,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: As palavras podem possuir letras repetidas.
+  m_text: A palavra pode ter letras repetidas.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
