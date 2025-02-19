@@ -39,6 +39,10 @@ public class ColorManager : MonoBehaviour
     [Header("Color Button Selection")]
     public Image[] colorButtonSelection;
 
+    [Header("Languages Objects")]
+    public Image ptButton;
+    public Image enButton;
+
     [Header("Settings Objects")]
     public Image partialColorModel;
     public Image rightColorModel;
@@ -136,6 +140,18 @@ public class ColorManager : MonoBehaviour
                 text.GetComponentInParent<Image>().color = rightColorModel.color;
         }
 
+        // update language screen
+        if (ptButton.color == rightColor)
+        {
+            ptButton.color = rightColorModel.color;
+            enButton.color = emptyColor;
+        }
+        if (enButton.color == rightColor)
+        {
+            enButton.color = rightColorModel.color;
+            ptButton.color = emptyColor;
+        }
+
         // update color database
         partialColor = partialColorModel.color;
         rightColor = rightColorModel.color;
@@ -145,6 +161,23 @@ public class ColorManager : MonoBehaviour
     {
         screenBG.color = victory ? screenVictoryColor : screenDefeatColor;
         playAgainButton.color = victory ? buttonVictoryColor : buttonDefeatColor;
+    }
+
+    public void UpdateLanguagesButtonsColor(string language)
+    {
+        switch (language)
+        {
+            case "pt":
+                ptButton.color = rightColor;
+                enButton.color = emptyColor;
+                break;
+            case "en":
+                ptButton.color = emptyColor;
+                enButton.color = rightColor;
+                break;
+            default:
+                break;
+        }
     }
 
 }

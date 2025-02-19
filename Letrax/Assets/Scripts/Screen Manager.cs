@@ -11,6 +11,8 @@ public class ScreenManager : MonoBehaviour
     public GameObject statsScreen;
     public GameObject settingsScreen;
     public GameObject mainMenuScreen;
+    public GameObject languagesScreen;
+    public GameObject confirmLanguageChangePopUp;
 
     public void PlayGame()
     {
@@ -20,6 +22,7 @@ public class ScreenManager : MonoBehaviour
             helpScreen.SetActive(true);
 
         gameplayScreen.SetActive(true);
+        languagesScreen.SetActive(false);
         mainMenuScreen.SetActive(false);
     }
 
@@ -28,7 +31,6 @@ public class ScreenManager : MonoBehaviour
         AudioManager.instance.HoverSFX();
 
         mainMenuScreen.SetActive(true);
-        gameplayScreen.SetActive(false);
         settingsScreen.SetActive(false);
     }
 
@@ -73,5 +75,78 @@ public class ScreenManager : MonoBehaviour
         AudioManager.instance.HoverSFX();
         settingsScreen.SetActive(false);
     }
+
+    public void OpenLanguages()
+    {
+        AudioManager.instance.HoverSFX();
+        ColorManager.instance.UpdateLanguagesButtonsColor(LocalizationManager.instance.currentLanguage);
+        LocalizationManager.instance.preSelectionLanguage = LocalizationManager.instance.currentLanguage;
+        languagesScreen.SetActive(true);
+        mainMenuScreen.SetActive(false);
+    }
+
+    public void CloseLanguages()
+    {
+        AudioManager.instance.HoverSFX();
+        mainMenuScreen.SetActive(true);
+        languagesScreen.SetActive(false);
+    }
+
+    public void ConfirmButton()
+    {
+        if (GameManager.instance.attemptNumber == 0)
+        {
+            GameManager.instance.ResetGameOnLanguageChange();
+            AudioManager.instance.HoverSFX();
+            mainMenuScreen.SetActive(true);
+            languagesScreen.SetActive(false);
+        }
+        else
+        {
+            if (LocalizationManager.instance.preSelectionLanguage != LocalizationManager.instance.currentLanguage)
+            {
+                AudioManager.instance.HoverSFX();
+                confirmLanguageChangePopUp.SetActive(true);
+            }
+            else
+            {
+                AudioManager.instance.HoverSFX();
+                mainMenuScreen.SetActive(true);
+                languagesScreen.SetActive(false);
+            }
+        }
+    }
+
+    public void YesButton()
+    {
+        // update language
+        LocalizationManager.instance.StartLoadLocalizedText(LocalizationManager.instance.preSelectionLanguage);
+        LocalizationManager.instance.currentLanguage = LocalizationManager.instance.preSelectionLanguage;
+
+        // atualizar bancos
+        // [CODE]
+
+        // Update stats with defeat
+        GameManager.instance.UpdateStats(0);
+
+        // Reset grid + cursor + keyboard + variables
+        GameManager.instance.ResetGameOnLanguageChange();
+
+        // Manage screens
+        mainMenuScreen.SetActive(true);
+        confirmLanguageChangePopUp.SetActive(false);
+        languagesScreen.SetActive(false);
+
+        // SFX
+        AudioManager.instance.HoverSFX();
+    }
+
+    public void NoButton()
+    {
+        AudioManager.instance.HoverSFX();
+        confirmLanguageChangePopUp.SetActive(false);
+    }
+
+
 
 }

@@ -201,7 +201,7 @@ public class GameManager : MonoBehaviour
         else
             return PlayerPrefs.GetString("baseWord");
     }
-    
+
     public void LoadStats()
     {
         // games
@@ -672,6 +672,9 @@ public class GameManager : MonoBehaviour
         // reset keyboad color
         ClearKeyboardColor();
 
+        // disable active cursor
+        ManageCursor(row, col, false);
+
         // reset variables
         attemptWord = "";
         attemptNumber = 0;
@@ -683,6 +686,33 @@ public class GameManager : MonoBehaviour
 
         // hide score
         afterGameScreen.SetActive(false);
+
+        // generate a new base word
+        baseWord = RandomBaseWord();
+
+        // SFX
+        AudioManager.instance.HoverSFX();
+    }
+
+    public void ResetGameOnLanguageChange()
+    {
+        // clear word grid
+        CleanWordGrid();
+
+        // reset keyboad color
+        ClearKeyboardColor();
+
+        // disable active cursor
+        ManageCursor(row, col, false);
+
+        // reset variables
+        attemptWord = "";
+        attemptNumber = 0;
+        row = 0;
+        col = 0;
+
+        // enable cursor on [0,0]
+        ManageCursor(row, col, true);
 
         // generate a new base word
         baseWord = RandomBaseWord();
