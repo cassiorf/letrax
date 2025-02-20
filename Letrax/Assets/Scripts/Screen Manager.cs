@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 
 public class ScreenManager : MonoBehaviour
@@ -17,6 +14,8 @@ public class ScreenManager : MonoBehaviour
     public void PlayGame()
     {
         AudioManager.instance.HoverSFX();
+
+        GameManager.instance.alertText.text = "";
 
         if (PlayerPrefs.GetFloat("games") == 0)
             helpScreen.SetActive(true);
@@ -96,10 +95,23 @@ public class ScreenManager : MonoBehaviour
     {
         if (GameManager.instance.attemptNumber == 0)
         {
+            // update language
+            LocalizationManager.instance.StartLoadLocalizedText(LocalizationManager.instance.preSelectionLanguage);
+            LocalizationManager.instance.currentLanguage = LocalizationManager.instance.preSelectionLanguage;
+
+            // update word database
+            GameManager.instance.LoadWordList(LocalizationManager.instance.currentLanguage);
+            GameManager.instance.LoadSelectionWordList(LocalizationManager.instance.currentLanguage);
+
+            // Reset grid + cursor + keyboard + variables
             GameManager.instance.ResetGameOnLanguageChange();
-            AudioManager.instance.HoverSFX();
+
+            // Manage screens
             mainMenuScreen.SetActive(true);
             languagesScreen.SetActive(false);
+
+            // SFX
+            AudioManager.instance.HoverSFX();
         }
         else
         {
@@ -123,8 +135,9 @@ public class ScreenManager : MonoBehaviour
         LocalizationManager.instance.StartLoadLocalizedText(LocalizationManager.instance.preSelectionLanguage);
         LocalizationManager.instance.currentLanguage = LocalizationManager.instance.preSelectionLanguage;
 
-        // atualizar bancos
-        // [CODE]
+        // update worddatabase
+        GameManager.instance.LoadWordList(LocalizationManager.instance.currentLanguage);
+        GameManager.instance.LoadSelectionWordList(LocalizationManager.instance.currentLanguage);
 
         // Update stats with defeat
         GameManager.instance.UpdateStats(0);

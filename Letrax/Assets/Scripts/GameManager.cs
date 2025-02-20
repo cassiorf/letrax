@@ -1,22 +1,20 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 using System.Globalization;
-using System.IO;
-using System;
-using System.Drawing;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
     [Header("Word Database")]
-    public TextAsset AllWordsJSONFile;
-    public TextAsset SelectionWordsJSONFile;
+    public TextAsset ptAllWordsJSONFile;
+    public TextAsset ptSelectionWordsJSONFile;
+    public TextAsset enAllWordsJSONFile;
+    public TextAsset enSelectionWordsJSONFile;
     [System.NonSerialized] private List<string> baseWordPool = new List<string>();
     [System.NonSerialized] private List<string> selectionBaseWordPool = new List<string>();
 
@@ -102,16 +100,24 @@ public class GameManager : MonoBehaviour
     }
 
     // load pool with all words
-    void LoadWordList()
+    public void LoadWordList(string languageDatabase)
     {
-        baseWordPool = LoadWordsFromJSON(AllWordsJSONFile);
+        if (languageDatabase == "pt")
+            baseWordPool = LoadWordsFromJSON(ptAllWordsJSONFile);
+        else if (languageDatabase == "en")
+            baseWordPool = LoadWordsFromJSON(enAllWordsJSONFile);
+
         Debug.Log($"JSON principal carregado com {baseWordPool.Count} palavras.");
     }
 
     // load pool with selection words
-    void LoadSelectionWordList()
+    public void LoadSelectionWordList(string languageDatabase)
     {
-        selectionBaseWordPool = LoadWordsFromJSON(SelectionWordsJSONFile);
+        if (languageDatabase == "pt")
+            selectionBaseWordPool = LoadWordsFromJSON(ptSelectionWordsJSONFile);
+        else if (languageDatabase == "en")
+            selectionBaseWordPool = LoadWordsFromJSON(enSelectionWordsJSONFile);
+
         Debug.Log($"JSON secundário carregado com {selectionBaseWordPool.Count} palavras.");
     }
 
@@ -167,10 +173,10 @@ public class GameManager : MonoBehaviour
         bgMatrix.Add(bgRow5);
 
         // load JSON with all words
-        LoadWordList();
+        LoadWordList(PlayerPrefs.GetString("currentLanguage", "pt"));
 
         // load JSON with most common words to be selected as base word
-        LoadSelectionWordList();
+        LoadSelectionWordList(PlayerPrefs.GetString("currentLanguage", "pt"));
 
         // randomize base word
         baseWord = RandomBaseWord();
@@ -381,14 +387,12 @@ public class GameManager : MonoBehaviour
                 ResetGridPersistence();
                 AudioManager.instance.VictorySFX();
                 ColorManager.instance.UpdateAfterGameScreenColor(true);
-                GameScore("VITÓRIA");
+                GameScore(true);
             }
             else
             {
                 LettersMatchResult(row);
 
-                row++;
-                col = 0;
                 attemptNumber++;
                 PlayerPrefs.SetInt("attemptNumber", attemptNumber);
                 PlayerPrefs.Save();
@@ -399,10 +403,12 @@ public class GameManager : MonoBehaviour
                     ResetGridPersistence();
                     AudioManager.instance.DefeatSFX();
                     ColorManager.instance.UpdateAfterGameScreenColor(false);
-                    GameScore("DERROTA");
+                    GameScore(false);
                 }
                 else
                 {
+                    row++;
+                    col = 0;
                     AudioManager.instance.SendButtonSFX();
                     ManageCursor(row, col, true);
                 }
@@ -465,7 +471,18 @@ public class GameManager : MonoBehaviour
         // Verificar se tem menos de 5 letras
         if (attemptWord.Length < 5)
         {
-            alertText.text = "A PALAVRA ESTÁ INCOMPLETA";
+            switch (LocalizationManager.instance.currentLanguage)
+            {
+                case "pt":
+                    alertText.text = "A PALAVRA ESTÁ INCOMPLETA";
+                    break;
+                case "en":
+                    alertText.text = "THE WORD IS INCOMPLETE";
+                    break;
+                default:
+                    break;
+            }
+
             VFXError(rowIndex);
             AudioManager.instance.ErrorSFX();
             return false;
@@ -477,7 +494,18 @@ public class GameManager : MonoBehaviour
         // Verificar se a palavra está na lista baseWordPool
         if (!baseWordPool.Any(word => RemoveDiacritics(word) == normalizedAttemptWord))
         {
-            alertText.text = "ESSA PALAVRA NÃO É ACEITA";
+            switch (LocalizationManager.instance.currentLanguage)
+            {
+                case "pt":
+                    alertText.text = "ESSA PALAVRA NÃO É ACEITA";
+                    break;
+                case "en":
+                    alertText.text = "THIS WORD IS NOT ACCEPTED";
+                    break;
+                default:
+                    break;
+            }
+
             VFXError(rowIndex);
             AudioManager.instance.ErrorSFX();
             return false;
@@ -608,11 +636,17 @@ public class GameManager : MonoBehaviour
 
     // After Game ----------------------------------------------------------
 
-    public void GameScore(string result)
+    public void GameScore(bool result)
     {
+        string victoryText = LocalizationManager.instance.currentLanguage == "pt" ? "VITÓRIA" : "VICTORY";
+        string defeatText = LocalizationManager.instance.currentLanguage == "pt" ? "DERROTA" : "DEFEAT";
+
+        finalScore.text = result ? victoryText : defeatText;
+
         theWordWas.text = baseWord.ToUpper();
-        finalScore.text = result;
         afterGameScreen.SetActive(true);
+
+
     }
 
     public void UpdateStats(int victoryScore)

@@ -32,6 +32,7 @@ public class LocalizationManager : MonoBehaviour
             localizedText = JsonConvert.DeserializeObject<Dictionary<string, string>>(dataAsJson);
             currentLanguage = languageCode;
             PlayerPrefs.SetString("currentLanguage", languageCode);
+            PlayerPrefs.Save();
 
             OnLanguageChanged?.Invoke(); // Dispara o evento para atualizar todos os textos
         }
